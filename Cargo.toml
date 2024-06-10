@@ -11,6 +11,7 @@ regex = "1"
 serde = { version = "1.0", features = ["derive"] }
 thiserror = "1.0.61"
 uuid = { version = "1.8.0", features = ["v4", "serde"] }
+log = "0.4.21"
 env_logger = "0.9"
 
 actix = "0.12"

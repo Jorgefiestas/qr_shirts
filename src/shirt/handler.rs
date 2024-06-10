@@ -36,6 +36,7 @@ async fn edit_shirt(service: web::Data<Service<Postgre>>, path: web::Path<Uuid>)
         Ok(form) => form,
         Err(_) => return HttpResponse::InternalServerError().finish(),
     };
+
     let form_html = form_html
         .replace("{{shirt_id}}", &shirt.id)
         .replace("{{shirt_secret}}", &secret.to_string())

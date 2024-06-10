@@ -1599,6 +1599,7 @@ dependencies = [
  "bcrypt",
  "dotenv",
  "env_logger",
+ "log",
  "regex",
  "serde",
  "sqlx",

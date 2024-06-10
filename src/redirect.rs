@@ -10,8 +10,6 @@ async fn read_qr(
 ) -> impl Responder {
     let shirt_id = path.into_inner();
 
-    // TODO: Implement template html response (picture, text, and redirect)
-
     let target = match shirt_service.get_redirect_url(&shirt_id).await {
         Ok(url) => url,
         Err(e) => return e.error_response(),
