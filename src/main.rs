@@ -1,25 +1,31 @@
-use actix_session::{storage, SessionMiddleware};
-use actix_web::{cookie, App, HttpServer};
+use actix_web::{web, App, HttpServer};
+use dotenv::dotenv;
+use sqlx::PgPool;
+use std::env;
 
 mod redirect;
 mod shirt;
-mod user;
+
+use crate::shirt::adapters::postgre::Postgre as ShirtDB;
+use crate::shirt::service::Service as ShirtService;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    let redis_store = storage::RedisSessionStore::new("redis://127.0.0.1:6379")
+    dotenv().ok();
+    env_logger::init();
+
+    let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
+    let db_pool = PgPool::connect(&database_url)
         .await
-        .unwrap();
-    let secret_key = cookie::Key::generate();
+        .expect("Failed to create pool");
+
+    let shirt_repo = ShirtDB::new(db_pool);
+    let shirt_service = ShirtService::new(shirt_repo);
 
     HttpServer::new(move || {
         App::new()
-            .wrap(SessionMiddleware::new(
-                redis_store.clone(),
-                secret_key.clone(),
-            ))
+            .app_data(web::Data::new(shirt_service.clone()))
             .service(redirect::read_qr)
-            .configure(user::handler::configure)
             .configure(shirt::handler::configure)
     })
     .bind("127.0.0.1:8080")?

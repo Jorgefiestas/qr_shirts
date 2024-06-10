@@ -1,8 +1,11 @@
+use uuid::Uuid;
+
 use super::port::Repository;
 use super::{Shirt, ShirtError};
 
-const LANDING_PAGE_URL: &str = "https://google.com";
+const ADMIN_PASS: &str = "password";
 
+#[derive(Clone)]
 pub struct Service<R: Repository> {
     repo: R,
 }
@@ -12,42 +15,36 @@ impl<R: Repository> Service<R> {
         Service { repo }
     }
 
-    pub fn claim_shirt(&self, id: &str, user_id: i32) -> Result<(), ShirtError> {
-        let shirt = self.repo.get_shirt_by_id(id)?;
+    pub async fn get_redirect_url(&self, id: &str) -> Result<String, ShirtError> {
+        self.repo.get_redirect_url(id).await
+    }
 
-        match shirt.owner_id {
-            None => self.repo.update_shirt(id, user_id, LANDING_PAGE_URL),
-            Some(_) => Err(ShirtError::AlreadyOwned),
+    pub async fn get_shirt_from_secret(&self, secret: Uuid) -> Result<Shirt, ShirtError> {
+        self.repo.get_shirt_from_secret(secret).await
+    }
+
+    pub async fn update_url(&self, secret: Uuid, new_url: &str) -> Result<(), ShirtError> {
+        let shirt = self.repo.get_shirt_from_secret(secret).await?;
+        self.repo.update_shirt(&shirt.id, new_url).await
+    }
+
+    pub async fn create_shirt(
+        &self,
+        id: &str,
+        redirect_url: &str,
+        password: &str,
+    ) -> Result<(), ShirtError> {
+        if password != ADMIN_PASS {
+            return Err(ShirtError::Unauthorized);
         }
-    }
 
-    pub fn update_url(&self, id: &str, user_id: i32, new_url: &str) -> Result<(), ShirtError> {
-        let shirt = self.repo.get_shirt_by_id(id)?;
+        let secret = Uuid::new_v4();
+        let shirt = Shirt {
+            id: id.to_string(),
+            redirect_url: redirect_url.to_string(),
+            secret,
+        };
 
-        match shirt.owner_id {
-            Some(owner_id) if user_id == owner_id => self.repo.update_shirt(id, user_id, new_url),
-            Some(_) => Err(ShirtError::Unauthorized),
-            None => Err(ShirtError::HasNoOwner),
-        }
-    }
-
-    pub fn get_redirect_url(&self, id: &str) -> Result<String, ShirtError> {
-        self.repo.get_redirect_url(id)
-    }
-
-    pub fn get_id_from_code(&self, reedem_code: &str) -> Result<String, ShirtError> {
-        self.repo.get_id_from_code(reedem_code)
-    }
-
-    pub fn get_shirts_by_owner(&self, owner_id: i32) -> Result<Vec<Shirt>, ShirtError> {
-        self.repo.get_shirts_by_owner(owner_id)
-    }
-
-    pub fn get_shirt(&self, shirt_id: &str, user_id: i32) -> Result<Shirt, ShirtError> {
-        let shirt = self.repo.get_shirt_by_id(shirt_id)?;
-        match shirt.owner_id {
-            Some(owner_id) if owner_id == user_id => Ok(shirt),
-            _ => Err(ShirtError::Unauthorized),
-        }
+        self.repo.create_shirt(&shirt).await
     }
 }

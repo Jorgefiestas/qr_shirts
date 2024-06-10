@@ -1,6 +1,7 @@
 use actix_web::{HttpResponse, ResponseError};
 use serde::Serialize;
 use thiserror::Error;
+use uuid::Uuid;
 
 pub mod adapters;
 pub mod handler;
@@ -12,18 +13,14 @@ pub mod service;
 #[derive(Serialize)]
 pub struct Shirt {
     id: String,
-    owner_id: Option<i32>,
+    secret: Uuid,
     redirect_url: String,
-    reedem_code: String,
 }
 
 #[derive(Debug, Error)]
 pub enum ShirtError {
-    #[error("Shirt already has an owner!")]
-    AlreadyOwned,
-
-    #[error("Unauthorized action!")]
-    HasNoOwner,
+    #[error("Database error!")]
+    DatabaseError(#[from] sqlx::Error),
 
     #[error("Unauthorized action!")]
     Unauthorized,

@@ -1,0 +1,146 @@
+<!doctype html>
+
+<style>
+  * {
+    font-family: "JetBrains Mono";
+  }
+
+  body {
+    background-color: #000;
+    box-sizing: border-box;
+    padding: 0;
+    margin: 0;
+  }
+
+  #wrapper {
+    box-sizing: border-box;
+    width: 500px;
+    padding: 20px 10px;
+    margin: 0 auto;
+    background-color: #fff;
+    height: 100vh;
+  }
+
+  h1 {
+    text-align: center;
+    margin: 20px auto;
+    display: inline-block;
+    width: 100%;
+  }
+
+  .container {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+  }
+
+  input[type="text"] {
+    padding: 5px 7px;
+    margin: 10px;
+    border: 2px solid #ccc;
+    border-radius: 10px;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+    width: 350px;
+    box-sizing: border-box;
+    transition:
+      border-color 0.3s ease-in-out,
+      box-shadow 0.3s ease-in-out;
+  }
+
+  input[type="text"]:focus {
+    border-color: #888;
+    box-shadow: 0 0 8px rgba(102, 102, 102, 0.6);
+    outline: none;
+  }
+
+  input[type="submit"] {
+    padding: 10px 20px;
+    border: 2px solid #ccc;
+    border-radius: 12px;
+    background-color: #66afe9;
+    color: white;
+    cursor: pointer;
+    transition:
+      background-color 0.3s ease-in-out,
+      box-shadow 0.3s ease-in-out;
+  }
+
+  input[type="submit"]:hover {
+    background-color: #0056b3;
+    box-shadow: 0 0 8px rgba(0, 86, 179, 0.6);
+  }
+</style>
+
+<html lang="en">
+  <head>
+    <link
+      href="https://fonts.googleapis.com/css?family=JetBrains Mono"
+      rel="stylesheet"
+    />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>BRANDNAME - {{shirt_id}}</title>
+    <script src="https://unpkg.com/htmx.org@1.6.1"></script>
+  </head>
+
+  <body>
+    <div id="wrapper">
+      <h1>BRANDNAME: {{shirt_id}}</h1>
+
+      <div id="shirt-info">
+        <form id="update-form">
+          <input
+            type="hidden"
+            id="secret"
+            name="secret"
+            value="{{shirt_secret}}"
+          />
+
+          <div class="container">
+            <label for="new_url">URL</label>
+            <input
+              type="text"
+              id="new_url"
+              name="new_url"
+              value="{{redirect_url}}"
+            />
+          </div>
+
+          <center>
+            <button type="submit">SAVE</button>
+          </center>
+        </form>
+      </div>
+    </div>
+  </body>
+</html>
+
+<script>
+  document
+    .getElementById("update-form")
+    .addEventListener("submit", async function (event) {
+      event.preventDefault();
+
+      const secret = document.getElementById("secret").value;
+      const new_url = document.getElementById("new_url").value;
+
+      const response = await fetch("/shirts/update", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          secret: secret,
+          new_url: new_url,
+        }),
+      });
+
+      if (response.ok) {
+        const result = await response.text();
+        document.getElementById("shirt-info").innerHTML = result;
+      } else {
+        alert("Failed to update shirt.");
+      }
+    });
+</script>

@@ -1,102 +1,76 @@
-use actix_session::Session;
+use std::fs::read_to_string;
+use std::path::Path;
+
 use actix_web::{get, post, web, HttpResponse, Responder, ResponseError};
 use serde::Deserialize;
+use uuid::Uuid;
 
-use super::adapters::mongo::Mongo;
+use super::adapters::postgre::Postgre;
 use super::service::Service;
 
-use crate::user::adapter::postgre::Postgre as UserPG;
-use crate::user::service::Service as UserService;
-
 #[derive(Deserialize)]
-pub struct UpdateRequest {
-    pub shirt_id: String,
+pub struct UpdateForm {
+    pub secret: Uuid,
     pub new_url: String,
 }
 
 #[derive(Deserialize)]
-pub struct ClaimRequest {
-    pub reedem_code: String,
-    pub email: String,
+pub struct CreateForm {
+    pub id: String,
+    pub url: String,
+    pub admin_pass: String,
 }
 
-#[get("/shirts/")]
-async fn get_shirts(service: web::Data<Service<Mongo>>, session: Session) -> impl Responder {
-    let user_id = match session.get::<i32>("user_id") {
-        Ok(Some(id)) => id,
-        Ok(None) => return HttpResponse::Unauthorized().finish(),
-        Err(_) => return HttpResponse::InternalServerError().finish(),
-    };
+#[get("/shirts/edit/{shirt_secret}")]
+async fn edit_shirt(service: web::Data<Service<Postgre>>, path: web::Path<Uuid>) -> impl Responder {
+    let secret = path.into_inner();
 
-    match service.get_shirts_by_owner(user_id) {
-        Ok(shirts) => HttpResponse::Ok().json(shirts),
-        Err(e) => e.error_response(),
-    }
-}
-
-#[get("/shirt/{shirt_id}")]
-async fn get_shirt(
-    service: web::Data<Service<Mongo>>,
-    session: Session,
-    path: web::Path<String>,
-) -> impl Responder {
-    let user_id = match session.get::<i32>("user_id") {
-        Ok(Some(id)) => id,
-        Ok(None) => return HttpResponse::Unauthorized().finish(),
-        Err(_) => return HttpResponse::InternalServerError().finish(),
-    };
-
-    let shirt_id = path.into_inner();
-
-    match service.get_shirt(&shirt_id, user_id) {
-        Ok(shirt) => HttpResponse::Ok().json(shirt),
-        Err(e) => e.error_response(),
-    }
-}
-
-#[post("/shirts/claim")]
-async fn claim(
-    shirt_service: web::Data<Service<Mongo>>,
-    user_service: web::Data<UserService<UserPG>>,
-    request: web::Json<ClaimRequest>,
-) -> impl Responder {
-    let shirt_id = match shirt_service.get_id_from_code(&request.reedem_code) {
-        Ok(id) => id,
+    let shirt = match service.get_shirt_from_secret(secret).await {
+        Ok(shirt) => shirt,
         Err(e) => return e.error_response(),
     };
 
-    // TODO: Create account when email not found (?)
+    let path = Path::new("./static/update_form.html");
 
-    let user = match user_service.get_user_by_email(&request.email).await {
-        Ok(user) => user,
-        Err(e) => return e.error_response(),
+    let form_html = match read_to_string(path) {
+        Ok(form) => form,
+        Err(_) => return HttpResponse::InternalServerError().finish(),
     };
+    let form_html = form_html
+        .replace("{{shirt_id}}", &shirt.id)
+        .replace("{{shirt_secret}}", &secret.to_string())
+        .replace("{{redirect_url}}", &shirt.redirect_url);
 
-    match shirt_service.claim_shirt(&shirt_id, user.id) {
-        Ok(_) => HttpResponse::Ok().finish(),
+    HttpResponse::Ok().content_type("text/html").body(form_html)
+}
+
+#[post("/shirts/new")]
+async fn new_shirt(
+    service: web::Data<Service<Postgre>>,
+    request: web::Json<CreateForm>,
+) -> impl Responder {
+    let response = service.create_shirt(&request.id, &request.url, &request.admin_pass);
+    match response.await {
+        Ok(()) => HttpResponse::Ok().body("Shirt succesfully created!"),
         Err(e) => e.error_response(),
     }
 }
 
-#[post("/shirts/update/")]
-async fn update(
-    service: web::Data<Service<Mongo>>,
-    request: web::Json<UpdateRequest>,
-    session: Session,
+#[post("/shirts/update")]
+async fn update_shirt(
+    service: web::Data<Service<Postgre>>,
+    request: web::Json<UpdateForm>,
 ) -> impl Responder {
-    let user_id = match session.get::<i32>("user_id") {
-        Ok(Some(id)) => id,
-        Ok(None) => return HttpResponse::Unauthorized().finish(),
-        Err(_) => return HttpResponse::InternalServerError().finish(),
-    };
-
-    match service.update_url(&request.shirt_id, user_id, &request.new_url) {
-        Ok(()) => HttpResponse::Ok().finish(),
+    match service.update_url(request.secret, &request.new_url).await {
+        Ok(()) => HttpResponse::Ok()
+            .content_type("text/html")
+            .body("Shirt succesfully updated!"),
         Err(e) => e.error_response(),
     }
 }
 
 pub fn configure(cfg: &mut web::ServiceConfig) {
-    cfg.service(get_shirts);
-    cfg.service(update);
+    cfg.service(new_shirt);
+    cfg.service(edit_shirt);
+    cfg.service(update_shirt);
 }
