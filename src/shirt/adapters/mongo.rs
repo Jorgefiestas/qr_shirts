@@ -21,11 +21,15 @@ impl Repository for Mongo {
         todo!()
     }
 
+    fn get_id_from_code(&self, reedem_code: &str) -> Result<String, ShirtError> {
+        todo!()
+    }
+
     fn get_shirts_by_owner(&self, owner_id: i32) -> Result<Vec<Shirt>, ShirtError> {
         todo!()
     }
 
-    fn get_id_from_code(&self, reedem_code: &str) -> Result<String, ShirtError> {
+    fn get_redirect_url(&self, id: &str) -> Result<String, ShirtError> {
         todo!()
     }
 }

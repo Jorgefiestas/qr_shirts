@@ -31,11 +31,23 @@ impl<R: Repository> Service<R> {
         }
     }
 
+    pub fn get_redirect_url(&self, id: &str) -> Result<String, ShirtError> {
+        self.repo.get_redirect_url(id)
+    }
+
     pub fn get_id_from_code(&self, reedem_code: &str) -> Result<String, ShirtError> {
         self.repo.get_id_from_code(reedem_code)
     }
 
     pub fn get_shirts_by_owner(&self, owner_id: i32) -> Result<Vec<Shirt>, ShirtError> {
         self.repo.get_shirts_by_owner(owner_id)
+    }
+
+    pub fn get_shirt(&self, shirt_id: &str, user_id: i32) -> Result<Shirt, ShirtError> {
+        let shirt = self.repo.get_shirt_by_id(shirt_id)?;
+        match shirt.owner_id {
+            Some(owner_id) if owner_id == user_id => Ok(shirt),
+            _ => Err(ShirtError::Unauthorized),
+        }
     }
 }

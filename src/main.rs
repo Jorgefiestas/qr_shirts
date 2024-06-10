@@ -1,6 +1,7 @@
 use actix_session::{storage, SessionMiddleware};
 use actix_web::{cookie, App, HttpServer};
 
+mod redirect;
 mod shirt;
 mod user;
 
@@ -17,6 +18,7 @@ async fn main() -> std::io::Result<()> {
                 redis_store.clone(),
                 secret_key.clone(),
             ))
+            .service(redirect::read_qr)
             .configure(user::handler::configure)
             .configure(shirt::handler::configure)
     })
