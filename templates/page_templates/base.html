@@ -1,0 +1,31 @@
+<!doctype html>
+
+<html lang="en">
+  <head>
+    <link
+      href="https://fonts.googleapis.com/css?family=JetBrains Mono"
+      rel="stylesheet"
+    />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{{shirt_id}}</title>
+
+    {% if edit_flag %}
+    <link href="/static/css/edit_page.css" rel="stylesheet" />
+    <script src="https://unpkg.com/htmx.org@1.6.1"></script>
+    <script src="/static/js/edit_page.js"></script>
+    {% endif %}
+
+    {% block head %}{% endblock %}
+  </head>
+
+  <body>
+    <input type="hidden" id="shirt-id" value="{{ shirt_id }}"></input>
+    {% block body %}{% endblock %}
+
+    {% if edit_flag %}
+    <button id="save-button">Save</button>
+    <button id="change-button">Change Template</button>
+    {% endif %}
+  </body>
+</html>

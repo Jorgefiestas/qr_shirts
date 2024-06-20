@@ -1,0 +1,23 @@
+{% extends "page_templates/base.html" %}
+
+<!-- -->
+
+{% block head %}
+<link href="/static/css/page_templates/profile.css" />
+<script src="/static/js/page_templates/profile.css"></script>
+{% endblock %}
+
+<!-- -->
+{% block content %}
+<div id="card">
+  <img src="{{image_url}}" alt="Profile Picture" />
+  <div class="card-content">
+    <div class="name">{{name}}</div>
+    <div class="title">{{title}}</div>
+    <hr />
+    <br />
+    <div class="contact"><i class="fa fa-envelope"></i> {{email}}</div>
+    <div class="contact"><i class="fa fa-phone"></i> {{phone}}</div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,41 @@
+* {
+  font-family: "JetBrains Mono";
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+textarea {
+  text-align: center;
+  font-size: 24px;
+  width: 100%;
+  height: 100%;
+  padding: 0 10%;
+  box-sizing: border-box;
+  border: none;
+  outline: none;
+  font-family: inherit;
+  color: inherit;
+  background: none;
+  padding: 0;
+  overflow: hidden;
+  resize: none;
+}
+
+@media (orientation: landscape) {
+  #quote {
+    width: 80vw;
+  }
+}
+
+@media (orientation: portrait) {
+  #quote {
+    width: 95vw;
+  }
+}

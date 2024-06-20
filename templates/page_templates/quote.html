@@ -1,0 +1,18 @@
+{% extends "page_templates/base.html" %}
+
+{% block head %}
+<link href="/static/css/page_templates/quote.css" rel="stylesheet" />
+{% endblock %}
+
+{%block body %} 
+<input id="template-id" type="hidden" value="1"></input>
+<div id="quote-div">
+  <textarea
+    id="quote"
+    class="parameter"
+    placeholder="Your text here"
+    maxlength="240"
+    readonly
+  >{{ quote }}</textarea>
+</div>
+{% endblock %}

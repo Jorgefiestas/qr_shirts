@@ -1,0 +1,41 @@
+#save-button {
+  position: absolute;
+  bottom: 15%;
+  right: 15%;
+  z-index: 1000;
+  padding: 10px 20px;
+  background-color: #aaa;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+  box-shadow: 3px 3px #555;
+  transition: background-color 0.3s ease;
+}
+
+#save-button:active {
+  background: #888;
+  box-shadow: none;
+}
+
+#change-button {
+  position: absolute;
+  bottom: 15%;
+  left: 15%;
+  z-index: 1000;
+  padding: 10px 20px;
+  background-color: #f69697;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+  box-shadow: 3px 3px #555;
+  transition: background-color 0.3s ease;
+}
+
+#change-button:active {
+  background: #ee6b6e;
+  box-shadow: none;
+}
